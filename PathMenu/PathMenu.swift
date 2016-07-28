@@ -9,12 +9,12 @@
 import Foundation
 import UIKit
 
-public protocol PathMenuDelegate: class {
-    func pathMenu(menu: PathMenu, didSelectIndex idx: Int)
-    func pathMenuDidFinishAnimationClose(menu: PathMenu)
-    func pathMenuDidFinishAnimationOpen(menu: PathMenu)
-    func pathMenuWillAnimateOpen(menu: PathMenu)
-    func pathMenuWillAnimateClose(menu: PathMenu)
+@objc public protocol PathMenuDelegate: class {
+    optional func pathMenu(menu: PathMenu, didSelectIndex idx: Int)
+    optional func pathMenuDidFinishAnimationClose(menu: PathMenu)
+    optional func pathMenuDidFinishAnimationOpen(menu: PathMenu)
+    optional func pathMenuWillAnimateOpen(menu: PathMenu)
+    optional func pathMenuWillAnimateClose(menu: PathMenu)
 }
 
 public class PathMenu: UIView, PathMenuItemDelegate {
@@ -23,6 +23,12 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         static var Near: CGFloat = 110.0
         static var End: CGFloat  = 120.0
         static var Far: CGFloat  = 140.0
+    }
+    
+    struct Distance {
+        static let UpDiff: CGFloat = 30
+        static let DownDiff: CGFloat = 10
+        
     }
     
     struct Duration {
@@ -52,11 +58,11 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         super.init(frame: frame)
     }
     
-    convenience public init(frame: CGRect!, itemWidth: CGFloat!, startItem: PathMenuItem?, items:[PathMenuItem]?) {
+    convenience public init(frame: CGRect!, itemSize: CGFloat!, startItem: PathMenuItem?, items:[PathMenuItem]?) {
         self.init(frame: frame)
         self.timeOffset = 0.036
-
-        self.itemWidth = itemWidth
+        
+        self.itemSize = itemSize
         self.nearRadius = Radius.Near
         self.endRadius  = Radius.End
         self.farRadius  = Radius.Far
@@ -81,9 +87,9 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         self.startButton!.center = startPoint
         self.addSubview(startButton!)
         
-        self.startButton?.frame = CGRectMake((self.startButton?.frame.origin.x)!, (self.startButton?.frame.origin.y)!, itemWidth, itemWidth)
+        self.startButton?.frame = CGRectMake((self.startButton?.frame.origin.x)!, (self.startButton?.frame.origin.y)!, itemSize, itemSize)
         for item in menuItems {
-            item.frame = CGRectMake((item.frame.origin.x), (item.frame.origin.y), itemWidth, itemWidth)
+            item.frame = CGRectMake((item.frame.origin.x), (item.frame.origin.y), itemSize, itemSize)
         }
     }
 
@@ -112,11 +118,17 @@ public class PathMenu: UIView, PathMenuItemDelegate {
     }
     
     
-    public var startPointBlock: (() -> CGPoint)!
+    public var startPointBlock: (() -> CGPoint)! {
+        didSet {
+            self.startPoint = startPointBlock()
+        }
+    }
     public var startButton: PathMenuItem?
     public weak var delegate: PathMenuDelegate?
 
-    public var itemWidth: CGFloat?
+    public var coverColor: UIColor! = UIColor.clearColor()
+    public var itemSize: CGFloat?
+    public var itemMargin: CGFloat! = 10
     public var flag: Int?
     public var timer: NSTimer?
     
@@ -181,10 +193,10 @@ public class PathMenu: UIView, PathMenuItemDelegate {
     override public func animationDidStop(anim: CAAnimation, finished flag: Bool) {
         if let animId = anim.valueForKey("id") {
             if animId.isEqual("lastAnimation") {
-                delegate?.pathMenuDidFinishAnimationClose(self)
+                delegate?.pathMenuDidFinishAnimationClose?(self)
             }
             if animId.isEqual("firstAnimation") {
-                delegate?.pathMenuDidFinishAnimationOpen(self)
+                delegate?.pathMenuDidFinishAnimationOpen?(self)
             }
         }
     }
@@ -218,14 +230,14 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         }
         
         motionState = .Close
-        delegate?.pathMenuWillAnimateClose(self)
+        delegate?.pathMenuWillAnimateClose?(self)
         
         let angle = motionState == .Expand ? CGFloat(M_PI_4) + CGFloat(M_PI) : 0.0
         UIView.animateWithDuration(Double(startMenuAnimationDuration!), animations: { [weak self] () -> Void in
             self?.startButton?.transform = CGAffineTransformMakeRotation(angle)
         })
         
-        delegate?.pathMenu(self, didSelectIndex: item.tag - 1000)
+        delegate?.pathMenu?(self, didSelectIndex: item.tag - 1000)
     }
     
     //MARK: Animation, Position
@@ -235,23 +247,30 @@ public class PathMenu: UIView, PathMenuItemDelegate {
 
         let selector: Selector
         let angle: CGFloat
+        var destinationColor: UIColor
         
         switch state {
         case .Close:
             setMenu()
-            delegate?.pathMenuWillAnimateOpen(self)
+            delegate?.pathMenuWillAnimateOpen?(self)
             selector = #selector(expand)
             flag = 0
             motionState = .Expand
             angle = CGFloat(M_PI_4) + CGFloat(M_PI)
+            destinationColor = coverColor
         case .Expand:
             setMenu()
-            delegate?.pathMenuWillAnimateClose(self)
+            delegate?.pathMenuWillAnimateClose?(self)
             selector = #selector(close)
             flag = menuItems.count - 1
             motionState = .Close
             angle = 0
+            destinationColor = UIColor.clearColor()
         }
+        
+        UIView.animateWithDuration(NSTimeInterval(animationDuration), animations: {
+            self.layer.backgroundColor = destinationColor.CGColor
+        }, completion: nil)
         
         UIView.animateWithDuration(Double(startMenuAnimationDuration!), animations: { [weak self] () -> Void in
             self?.startButton?.transform = CGAffineTransformMakeRotation(angle)
@@ -363,39 +382,27 @@ public class PathMenu: UIView, PathMenuItemDelegate {
     
     func layoutMenu() {
         let count = menuItems.count
-        var denominator: Int?
         for (index, menuItem) in menuItems.enumerate() {
             let item = menuItem
-            denominator = count == 1 ? 1 : count - 1
-            
+
             item.startPoint = startPoint
-            
-            let i1 = Float(endRadius) * sinf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
-            let i2 = Float(endRadius) * cosf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
-            let endPoint = CGPointMake(startPoint.x + CGFloat(i1), startPoint.y - CGFloat(i2))
-            item.endPoint = RotateCGPointAroundCenter(endPoint, center: startPoint, angle: rotateAngle!)
-            
-            let j1 = Float(nearRadius) * sinf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
-            let j2 = Float(nearRadius) * cosf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
-            let nearPoint = CGPointMake(startPoint.x + CGFloat(j1), startPoint.y - CGFloat(j2))
-            item.nearPoint = RotateCGPointAroundCenter(nearPoint, center: startPoint, angle: rotateAngle!)
-            
-            let k1 = Float(farRadius) * sinf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
-            let k2 = Float(farRadius) * cosf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
-            let farPoint = CGPointMake(startPoint.x + CGFloat(k1), startPoint.y - CGFloat(k2))
-            item.farPoint = RotateCGPointAroundCenter(farPoint, center: startPoint, angle: rotateAngle!)
-            
-            
+
+            let endPointY = startPoint.y - (itemSize! + itemMargin) * CGFloat(index + 1)
+            item.endPoint = CGPoint(x: startPoint.x, y: endPointY)
+
+            let nearPointY = startPoint.y - (itemSize! + itemMargin) * CGFloat(index + 1) + Distance.DownDiff
+            item.nearPoint = CGPoint(x: startPoint.x, y: nearPointY)
+
+            let farPointY = startPoint.y - (itemSize! + itemMargin) * CGFloat(index + 1) - Distance.UpDiff
+            item.farPoint = CGPoint(x: startPoint.x, y: farPointY)
             
             let state = motionState!
             switch state {
-            case .Close:
-               item.center = item.startPoint!
-            case .Expand:
-               item.center = item.endPoint!
+                case .Close:
+                   item.center = item.startPoint!
+                case .Expand:
+                   item.center = item.endPoint!
             }
-            
-            
         }
 
     }
