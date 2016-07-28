@@ -236,7 +236,7 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         UIView.animateWithDuration(Double(startMenuAnimationDuration!), animations: { [weak self] () -> Void in
             self?.startButton?.transform = CGAffineTransformMakeRotation(angle)
         })
-        
+        self.backgroundColor = UIColor.clearColor()
         delegate?.pathMenu?(self, didSelectIndex: item.tag - 1000)
     }
     
