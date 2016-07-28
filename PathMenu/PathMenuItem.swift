@@ -58,22 +58,8 @@ public class PathMenuItem: UIImageView {
         let height = rect.size.height
         return CGRectMake((width - width * n)/2, (height - height * n)/2, width * n, height * n)
     }
-
+   
     //MARK: UIView's methods
-    
-    override public func layoutSubviews() {
-        super.layoutSubviews()
-        if let image = image {
-            bounds = CGRectMake(0, 0, image.size.width, image.size.height)
-        }
-        
-        if let imageView = contentImageView,
-                let width = imageView.image?.size.width,
-                    let height = imageView.image?.size.height {
-
-            imageView.frame = CGRectMake(bounds.size.width/2 - width/2, bounds.size.height/2 - height/2, width, height)
-        }
-    }
     
     public override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         highlighted = true

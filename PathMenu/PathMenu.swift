@@ -52,10 +52,11 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         super.init(frame: frame)
     }
     
-    convenience public init(frame: CGRect!, startItem: PathMenuItem?, items:[PathMenuItem]?) {
+    convenience public init(frame: CGRect!, itemWidth: CGFloat!, startItem: PathMenuItem?, items:[PathMenuItem]?) {
         self.init(frame: frame)
         self.timeOffset = 0.036
 
+        self.itemWidth = itemWidth
         self.nearRadius = Radius.Near
         self.endRadius  = Radius.End
         self.farRadius  = Radius.Far
@@ -79,6 +80,11 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         self.startButton!.delegate = self
         self.startButton!.center = startPoint
         self.addSubview(startButton!)
+        
+        self.startButton?.frame = CGRectMake((self.startButton?.frame.origin.x)!, (self.startButton?.frame.origin.y)!, itemWidth, itemWidth)
+        for item in menuItems {
+            item.frame = CGRectMake((item.frame.origin.x), (item.frame.origin.y), itemWidth, itemWidth)
+        }
     }
 
     deinit{
@@ -105,10 +111,12 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         }
     }
     
+    
     public var startPointBlock: (() -> CGPoint)!
     public var startButton: PathMenuItem?
     public weak var delegate: PathMenuDelegate?
 
+    public var itemWidth: CGFloat?
     public var flag: Int?
     public var timer: NSTimer?
     
