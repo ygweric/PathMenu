@@ -40,8 +40,12 @@ class ViewController: UIViewController {
                    highlightedContentImage: UIImage(named: "icon-plus-highlighted"))
         
         let menu = PathMenu(frame: view.bounds, startItem: startItem, items: items)
-        menu.delegate = self
-        menu.startPoint     = CGPointMake(UIScreen.mainScreen().bounds.width/2, view.frame.size.height - 30.0)
+        menu.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
+        menu.startPointBlock = {[weak self] in
+            guard let `self` = self else { return CGPointZero }
+            return  CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 30.0)
+        }
+        menu.delegate = self        
         menu.menuWholeAngle = CGFloat(M_PI) - CGFloat(M_PI/5)
         menu.rotateAngle    = -CGFloat(M_PI_2) + CGFloat(M_PI/5) * 1/2
         menu.timeOffset     = 0.0

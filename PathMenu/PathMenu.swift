@@ -81,6 +81,20 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         self.addSubview(startButton!)
     }
 
+    deinit{
+        self.removeObserver(self, forKeyPath: "frame")
+    }
+    
+    public override func willMoveToSuperview(newSuperview: UIView?) {
+         newSuperview!.addObserver(self, forKeyPath: "frame", options: NSKeyValueObservingOptions(rawValue: 0), context: nil)
+    }
+    
+    public override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+        if (object as? UIView) == self.superview && keyPath == "frame" {
+            self.startPoint = startPointBlock()
+        }
+    }
+    
     public var menuItems: [PathMenuItem] = [] {
         didSet {
             for view in subviews {
@@ -91,6 +105,7 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         }
     }
     
+    public var startPointBlock: (() -> CGPoint)!
     public var startButton: PathMenuItem?
     public weak var delegate: PathMenuDelegate?
 
@@ -118,6 +133,7 @@ public class PathMenu: UIView, PathMenuItemDelegate {
     public var startPoint: CGPoint = CGPointZero {
         didSet {
             startButton?.center = startPoint
+            layoutMenu()
         }
     }
     
@@ -216,13 +232,14 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         case .Close:
             setMenu()
             delegate?.pathMenuWillAnimateOpen(self)
-            selector = "expand"
+            selector = #selector(expand)
             flag = 0
             motionState = .Expand
             angle = CGFloat(M_PI_4) + CGFloat(M_PI)
         case .Expand:
+            setMenu()
             delegate?.pathMenuWillAnimateClose(self)
-            selector = "close"
+            selector = #selector(close)
             flag = menuItems.count - 1
             motionState = .Close
             angle = 0
@@ -279,7 +296,7 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         item.layer.addAnimation(animationgroup, forKey: "Expand")
         item.center = item.endPoint!
         
-        flag!++
+        flag! += 1
     }
     
     public func close() {
@@ -319,23 +336,31 @@ public class PathMenu: UIView, PathMenuItemDelegate {
         item.layer.addAnimation(animationgroup, forKey: "Close")
         item.center = item.startPoint!
         
-        flag!--
+        flag! -= 1
     }
     
     public func setMenu() {
         let count = menuItems.count
-        var denominator: Int?
-        
         for (index, menuItem) in menuItems.enumerate() {
             let item = menuItem
             item.tag = 1000 + index
-            item.startPoint = startPoint
-            
             if menuWholeAngle >= CGFloat(M_PI) * 2 {
                 menuWholeAngle = menuWholeAngle! - menuWholeAngle! / CGFloat(count)
             }
-            
+            item.delegate = self
+            insertSubview(item, belowSubview: startButton!)
+        }
+        layoutMenu()
+    }
+    
+    func layoutMenu() {
+        let count = menuItems.count
+        var denominator: Int?
+        for (index, menuItem) in menuItems.enumerate() {
+            let item = menuItem
             denominator = count == 1 ? 1 : count - 1
+            
+            item.startPoint = startPoint
             
             let i1 = Float(endRadius) * sinf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
             let i2 = Float(endRadius) * cosf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
@@ -346,17 +371,25 @@ public class PathMenu: UIView, PathMenuItemDelegate {
             let j2 = Float(nearRadius) * cosf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
             let nearPoint = CGPointMake(startPoint.x + CGFloat(j1), startPoint.y - CGFloat(j2))
             item.nearPoint = RotateCGPointAroundCenter(nearPoint, center: startPoint, angle: rotateAngle!)
-
+            
             let k1 = Float(farRadius) * sinf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
             let k2 = Float(farRadius) * cosf(Float(index) * Float(menuWholeAngle!) / Float(denominator!))
             let farPoint = CGPointMake(startPoint.x + CGFloat(k1), startPoint.y - CGFloat(k2))
             item.farPoint = RotateCGPointAroundCenter(farPoint, center: startPoint, angle: rotateAngle!)
             
-            item.center = item.startPoint!
-            item.delegate = self
-
-            insertSubview(item, belowSubview: startButton!)
+            
+            
+            let state = motionState!
+            switch state {
+            case .Close:
+               item.center = item.startPoint!
+            case .Expand:
+               item.center = item.endPoint!
+            }
+            
+            
         }
+
     }
     
     private func RotateCGPointAroundCenter(point: CGPoint, center: CGPoint, angle: CGFloat) -> CGPoint {
