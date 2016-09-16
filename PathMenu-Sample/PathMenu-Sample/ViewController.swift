@@ -39,11 +39,11 @@ class ViewController: UIViewController {
                               contentImage: UIImage(named: "icon-plus"),
                    highlightedContentImage: UIImage(named: "icon-plus-highlighted"))
         
-        let menu = PathMenu(frame: view.bounds, startItem: startItem, items: items)
-        menu.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
+        let menu = PathMenu(frame: view.bounds, itemSize: 33, startItem: startItem, items: items)
+        menu.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         menu.startPointBlock = {[weak self] in
-            guard let `self` = self else { return CGPointZero }
-            return  CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 30.0)
+            guard let `self` = self else { return CGPoint.zero }
+            return  CGPoint(x: self.view.frame.size.width/2, y: self.view.frame.size.height - 30.0)
         }
         menu.delegate = self        
         menu.menuWholeAngle = CGFloat(M_PI) - CGFloat(M_PI/5)
@@ -61,23 +61,23 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: PathMenuDelegate {
-    func pathMenu(menu: PathMenu, didSelectIndex idx: Int) {
+    func pathMenu(_ menu: PathMenu, didSelectIndex idx: Int) {
         print("Select the index : \(idx)")
     }
     
-    func pathMenuWillAnimateOpen(menu: PathMenu) {
+    func pathMenuWillAnimateOpen(_ menu: PathMenu) {
         print("Menu will open!")
     }
     
-    func pathMenuWillAnimateClose(menu: PathMenu) {
+    func pathMenuWillAnimateClose(_ menu: PathMenu) {
         print("Menu will close!")
     }
     
-    func pathMenuDidFinishAnimationOpen(menu: PathMenu) {
+    func pathMenuDidFinishAnimationOpen(_ menu: PathMenu) {
         print("Menu was open!")
     }
     
-    func pathMenuDidFinishAnimationClose(menu: PathMenu) {
+    func pathMenuDidFinishAnimationClose(_ menu: PathMenu) {
         print("Menu was closed!")
     }
 }
@@ -87,17 +87,17 @@ extension ViewController: UITableViewDelegate {
 
 extension ViewController: UITableViewDataSource {
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
 
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
-        cell.textLabel?.text = items[indexPath.row]
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        cell.textLabel?.text = items[(indexPath as NSIndexPath).row]
         return cell
     }
     
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     

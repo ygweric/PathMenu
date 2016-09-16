@@ -329,6 +329,7 @@
 					6E11BB171A531AC3000C37D5 = {
 						CreatedOnToolsVersion = 6.1.1;
 						DevelopmentTeam = XP5N783SQH;
+						LastSwiftMigration = 0800;
 					};
 					6E11BB2C1A531AC3000C37D5 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -336,6 +337,7 @@
 					};
 					BFB677521AE6B8D3007DC28B = {
 						CreatedOnToolsVersion = 6.3;
+						LastSwiftMigration = 0800;
 					};
 					BFB6775C1AE6B8D3007DC28B = {
 						CreatedOnToolsVersion = 6.3;
@@ -571,6 +573,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "pixyzehn.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -585,6 +588,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "pixyzehn.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -646,6 +650,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "f3bd9f9c-c781-4a84-a4b9-d221e4ac54ef";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -672,6 +677,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "f3bd9f9c-c781-4a84-a4b9-d221e4ac54ef";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
