@@ -19,6 +19,8 @@ import UIKit
 
 open class PathMenu: UIView, PathMenuItemDelegate, CAAnimationDelegate {
     
+    var isObserving: Bool = false
+    
     struct Radius {
         static var Near: CGFloat = 110.0
         static var End: CGFloat  = 120.0
@@ -94,11 +96,20 @@ open class PathMenu: UIView, PathMenuItemDelegate, CAAnimationDelegate {
     }
 
     deinit{
-        self.removeObserver(self, forKeyPath: "frame")
+        if isObserving {
+            superview!.removeObserver(self, forKeyPath: "frame")
+            isObserving = false
+        }
     }
     
     open override func willMove(toSuperview newSuperview: UIView?) {
-         newSuperview!.addObserver(self, forKeyPath: "frame", options: NSKeyValueObservingOptions(rawValue: 0), context: nil)
+        if newSuperview != nil {
+            newSuperview!.addObserver(self, forKeyPath: "frame", options: NSKeyValueObservingOptions(rawValue: 0), context: nil)
+            isObserving = true
+        } else {
+            superview!.removeObserver(self, forKeyPath: "frame")
+            isObserving = false
+        }
     }
     
     open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
